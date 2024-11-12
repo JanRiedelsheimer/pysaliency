@@ -1,35 +1,34 @@
 from flask import Flask, request, jsonify
-import pickle
+import numpy as np
+import json
+from PIL import Image
+from io import BytesIO
+# import pickle
 
 # Import your model here
-from sample_submission import SampleScanpathModel
+from sample_submission import MySimpleScanpathModel
 
 app = Flask("saliency-model-server")
 app.logger.setLevel("DEBUG")
 
-# TODO - replace this with your model
-model = SampleScanpathModel()
+# # TODO - replace this with your model
+model = MySimpleScanpathModel()
 
 
-@app.route("/predict", methods=["POST"])
-def predict():
-    payload = request.get_data()
-    inputs = pickle.loads(payload)
-    app.logger.info(f"Received: {inputs}")
+@app.route('/conditional_log_density', methods=['POST'])
+def conditional_log_density():
+    data = json.loads(request.form['json_data'])
+    x_hist = np.array(data['x_hist'])
+    y_hist = np.array(data['y_hist'])
+    t_hist = np.array(data['t_hist'])
+    attributes = data.get('attributes', {})
 
-    # TODO - replace this with your model prediction function
-    result = model.conditional_log_density(
-        inputs["stimulus"],
-        inputs["x_hist"],
-        inputs["y_hist"],
-        inputs["t_hist"],
-        inputs["attributes"],
-        inputs["out"],
-    )
-    # resp = pickle.dumps(result)
-    app.logger.info(f"Result: {result}")
-    # The below assumes that the model returns a numpy array.
-    return result.tolist()
+    image_bytes = request.files['stimulus'].read()
+    image = Image.open(BytesIO(image_bytes))
+    stimulus = np.array(image)
+
+    log_density = model.conditional_log_density(stimulus, x_hist, y_hist, t_hist, attributes)
+    return jsonify({'log_density': log_density.tolist()})
 
 
 def main():
