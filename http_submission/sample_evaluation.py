@@ -14,6 +14,11 @@ import pysaliency
 class HTTPScanpathModel(MySimpleScanpathModel):
     def __init__(self, url):
         self.url = url
+        self.log_density_url = url + "/conditional_log_density"
+        self.type_url = url + "/type"
+
+
+
 
     def conditional_log_density(self, stimulus, x_hist, y_hist, t_hist, attributes=None, out=None):
 
@@ -35,7 +40,7 @@ class HTTPScanpathModel(MySimpleScanpathModel):
         }
 
         # send request
-        response = requests.post(f"{self.url}", data={'json_data': json.dumps(json_data)}, files={'stimulus': image_bytes.getvalue()})
+        response = requests.post(f"{self.log_density_url}", data={'json_data': json.dumps(json_data)}, files={'stimulus': image_bytes.getvalue()})
 
         # parse response
         if response.status_code != 200:
@@ -43,19 +48,30 @@ class HTTPScanpathModel(MySimpleScanpathModel):
 
         return np.array(response.json()['log_density'])
 
+    def type(self):
+        response = requests.get(f"{self.type_url}")
+        return np.array(response.json())
+
+
 if __name__ == "__main__":
-    http_model = HTTPScanpathModel("http://localhost:4000/conditional_log_density")
+    http_model = HTTPScanpathModel("http://localhost:4000")
 
     # get MIT1003 dataset
     stimuli, fixations = pysaliency.get_mit1003(location='pysaliency_datasets')
     fixation_index = 32185
+
     # get server response for one stimulus
-    server_response = http_model.conditional_log_density(
+    server_density = http_model.conditional_log_density(
         stimulus=stimuli.stimuli[fixations.n[fixation_index]], 
         x_hist=fixations.x_hist[fixation_index], 
         y_hist=fixations.y_hist[fixation_index], 
         t_hist=fixations.t_hist[fixation_index]
     )
+    # get server version
+    server_version = http_model.type()
+    print(server_version)
+
+    
     # TODO: delete plotting part
     # plot server response, only for testing
 
@@ -67,7 +83,7 @@ if __name__ == "__main__":
     plot_scanpath(stimuli, fixations, fixation_index, visualize_next_saccade=True, ax=axs[0])
     axs[0].set_title("Image")
 
-    axs[1].imshow(server_response)
+    axs[1].imshow(server_density)
 
     axs[1].set_title("http_model_log_density")
     fig.savefig("test.png")

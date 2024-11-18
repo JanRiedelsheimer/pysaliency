@@ -31,6 +31,13 @@ def conditional_log_density():
     return jsonify({'log_density': log_density.tolist()})
 
 
+@app.route('/type', methods=['GET'])
+def type():
+    type = "ScanpathModel"
+    version = "v1.0.0"
+    return jsonify({'type': type, 'version': version})
+   
+
 def main():
     app.run(host="localhost", port="4000", debug="True", threaded=True)
 
