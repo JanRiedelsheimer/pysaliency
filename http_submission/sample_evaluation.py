@@ -55,10 +55,18 @@ class HTTPScanpathModel(MySimpleScanpathModel):
 
 if __name__ == "__main__":
     http_model = HTTPScanpathModel("http://localhost:4000")
+    type = http_model.type()
+
+    # for testing
+    model = MySimpleScanpathModel()
 
     # get MIT1003 dataset
     stimuli, fixations = pysaliency.get_mit1003(location='pysaliency_datasets')
-    fixation_index = 32185
+    # fixation_index = 32185
+    fixation_index = 2
+    # density_list = []
+    # version_list = []
+    # for fixation_index in range(1000):
 
     # get server response for one stimulus
     server_density = http_model.conditional_log_density(
@@ -67,23 +75,17 @@ if __name__ == "__main__":
         y_hist=fixations.y_hist[fixation_index], 
         t_hist=fixations.t_hist[fixation_index]
     )
-    # get server version
-    server_version = http_model.type()
-    print(server_version)
+    model_density = model.conditional_log_density(
+        stimulus=stimuli.stimuli[fixations.n[fixation_index]], 
+        x_hist=fixations.x_hist[fixation_index], 
+        y_hist=fixations.y_hist[fixation_index], 
+        t_hist=fixations.t_hist[fixation_index]
+        
+    )
+    # get server type
+    print(type)
 
-    
-    # TODO: delete plotting part
-    # plot server response, only for testing
+    # Testing 
 
-    fig, axs = plt.subplots(1, 2, figsize=(12, 6))
-    axs[0].set_axis_off()
-    axs[1].set_axis_off()
-
-    axs[0].imshow(stimuli.stimuli[fixations.n[fixation_index]])
-    plot_scanpath(stimuli, fixations, fixation_index, visualize_next_saccade=True, ax=axs[0])
-    axs[0].set_title("Image")
-
-    axs[1].imshow(server_density)
-
-    axs[1].set_title("http_model_log_density")
-    fig.savefig("test.png")
+    test = np.testing.assert_allclose(server_density, model_density)
+    print(test)
