@@ -44,6 +44,7 @@ class MySimpleScanpathModel(pysaliency.ScanpathModel):
         self.spatial_model_bandwidth = spatial_model_bandwidth
         self.saccade_width = saccade_width
         self.spatial_model = LocalContrastModel(spatial_model_bandwidth)
+        # self.spatial_model = pysaliency.UniformModel()
 
 
     def conditional_log_density(self, stimulus, x_hist, y_hist, t_hist, attributes=None, out=None,):
