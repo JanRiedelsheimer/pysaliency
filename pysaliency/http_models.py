@@ -46,7 +46,6 @@ class HTTPScanpathModel(ScanpathModel):
         return np.array(response.json()['log_density'])
 
     def check_type(self):
-        # TODO in constuctor aufrufen, damit direkt gecheckt wird ob type passt
         response = requests.get(f"{self.type_url}").json()
         if not response['type'] == 'ScanpathModel':
             raise ValueError(f"invalid Model type: {response['type']}. Expected 'ScanpathModel'")
