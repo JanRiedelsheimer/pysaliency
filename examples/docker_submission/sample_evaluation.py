@@ -6,6 +6,9 @@ sys.path.insert(0, '..')
 import pysaliency
 
 
+from tqdm import tqdm
+
+
 if __name__ == "__main__":
     http_model = HTTPScanpathModel("http://localhost:4000")
     http_model.check_type()
@@ -16,9 +19,16 @@ if __name__ == "__main__":
     # get MIT1003 dataset
     stimuli, fixations = pysaliency.get_mit1003(location='pysaliency_datasets')
 
-    eval_fixations = fixations[fixations.scanpath_history_length > 0]
+    for stimulus in tqdm(stimuli):
+        stimulus.stimulus_data
 
-    for fixation_index in range(10):
+    eval_fixations = fixations[fixations.scanpath_history_length > 0]
+    eval_fixations = eval_fixations[:10]
+
+    information_gain = http_model.information_gain(stimuli, eval_fixations, average="image", verbose=True)
+    print("IG:", information_gain)
+
+    for fixation_index in tqdm(range(10)):
         # get server response for one stimulus
         server_density = http_model.conditional_log_density(
             stimulus=stimuli.stimuli[eval_fixations.n[fixation_index]], 
