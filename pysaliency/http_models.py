@@ -49,9 +49,9 @@ class HTTPScanpathModel(ScanpathModel):
             return attribute
 
         json_data = {
-            "x_hist": list(x_hist.tolist()), # .tolist()
-            "y_hist": list(y_hist.tolist()),
-            "t_hist": list(t_hist.tolist()),
+            "x_hist": x_hist.tolist(),
+            "y_hist": y_hist.tolist(),
+            "t_hist": t_hist.tolist(),
             "attributes": {key: _convert_attribute(value) for key, value in (attributes or {}).items()}
         }
         # send request

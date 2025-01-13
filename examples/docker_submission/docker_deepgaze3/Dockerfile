@@ -17,7 +17,7 @@ RUN python -m pip install --no-cache -U pip \
     && python -m pip install --no-cache -r requirements.txt
 
 COPY ./model_server.py ./
-COPY ./sample_submission.py ./
+# COPY ./sample_submission.py ./
 
 # This is needed for Singularity builds.
 EXPOSE $HTTP_PORT

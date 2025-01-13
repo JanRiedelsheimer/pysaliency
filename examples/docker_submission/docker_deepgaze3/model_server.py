@@ -1,5 +1,4 @@
 from flask import Flask, request
-# from flask_orjson import OrjsonProvider
 import numpy as np
 import json
 from PIL import Image
@@ -14,11 +13,21 @@ import deepgaze_pytorch
 
 # Flask server
 app = Flask("saliency-model-server")
-# app.json_provider = OrjsonProvider(app)
 app.logger.setLevel("DEBUG")
 
 # # TODO - replace this with your model
 model = deepgaze_pytorch.DeepGazeIII(pretrained=True)
+
+def get_fixation_history(fixation_coordinates, model):
+    print('hello')
+    history = []
+    for index in model.included_fixations:
+        try:
+            history.append(fixation_coordinates[index])
+        except IndexError:
+            print("IndexError")
+            history.append(np.nan)
+    return np.array(history)
 
 @app.route('/conditional_log_density', methods=['POST'])
 def conditional_log_density():
@@ -28,6 +37,11 @@ def conditional_log_density():
     # extract scanpath history
     x_hist = np.array(data['x_hist'])
     y_hist = np.array(data['y_hist'])
+    print(x_hist)
+
+    x_hist = get_fixation_history(x_hist, model)
+    print(x_hist)
+    y_hist = get_fixation_history(y_hist, model)
     # t_hist = np.array(data['t_hist'])
     # attributes = data.get('attributes', {})
 
@@ -37,7 +51,7 @@ def conditional_log_density():
     stimulus = np.array(image)
 
     # centerbias for deepgaze3 model
-    centerbias_template = np.zeros((1024, 1024)) # (1024, 1024)
+    centerbias_template = np.zeros((1024, 1024))
     centerbias = zoom(centerbias_template, 
                         (stimulus.shape[0]/centerbias_template.shape[0], 
                          stimulus.shape[1]/centerbias_template.shape[1]), 
